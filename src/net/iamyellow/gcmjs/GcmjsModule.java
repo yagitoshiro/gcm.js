@@ -56,8 +56,7 @@ public class GcmjsModule extends KrollModule {
 
 	public static final String LCAT = "gcmjs";	
 	public static void logd (String msg) {
-		//if (DBG) {
-		if (true) {
+		if (DBG) {
 			Log.d(LCAT, msg);
 		}
 	}
