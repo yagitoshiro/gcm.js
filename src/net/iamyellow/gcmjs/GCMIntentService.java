@@ -33,7 +33,7 @@ public class GCMIntentService extends GCMBaseIntentService {
         
     @Override
     protected void onRegistered (Context context, String registrationId) {
-    	GcmjsModule module = (GcmjsModule)TiApplication.getInstance().getModuleByName(GcmjsModule.MODULE_NAME);
+    	GcmjsModule module = GcmjsModule.getInstance();
     	if (module != null) {
     		GcmjsModule.logd("onRegistered: got the module!");
     		module.fireSuccess(registrationId);
@@ -45,7 +45,7 @@ public class GCMIntentService extends GCMBaseIntentService {
     
     @Override
     protected void onUnregistered (Context context, String registrationId) {
-    	GcmjsModule module = (GcmjsModule)TiApplication.getInstance().getModuleByName(GcmjsModule.MODULE_NAME);
+    	GcmjsModule module = GcmjsModule.getInstance();
     	if (module != null) {
     		GcmjsModule.logd("onUnregistered: got the module!");
     		module.fireUnregister(registrationId);
@@ -57,10 +57,12 @@ public class GCMIntentService extends GCMBaseIntentService {
 
     @Override
     protected void onMessage (Context context, Intent messageIntent) {
-    	GcmjsModule module = (GcmjsModule)TiApplication.getInstance().getModuleByName(GcmjsModule.MODULE_NAME);
+    	TiApplication tiapp = TiApplication.getInstance();
+    	
+    	GcmjsModule module = GcmjsModule.getInstance();
     	if (module != null) {
     		GcmjsModule.logd("onMessage: got the module!");
-    		if (GcmjsModule.appStateListener.isInFg()) {
+    		if (module.isInFg()) {
     			GcmjsModule.logd("onMessage: app is in foreground, no need for notifications.");
 
     			HashMap<String, Object> messageData = new HashMap<String, Object>();
@@ -75,20 +77,18 @@ public class GCMIntentService extends GCMBaseIntentService {
     	else {
     		GcmjsModule.logd("onMessage: module instance not found.");
     	}
-
-		Context intentContext = TiApplication.getInstance().getApplicationContext();
-		// start the javascript service
-		Intent intent = new Intent(intentContext, GcmService.class);
+    	
+		Intent intent = new Intent(tiapp, GcmjsService.class);
         for (String key : messageIntent.getExtras().keySet()) {
 			String eventKey = key.startsWith("data.") ? key.substring(5) : key;
 			intent.putExtra(eventKey, messageIntent.getExtras().getString(key));
 		}
-        intentContext.startService(intent);
+        tiapp.startService(intent);
     }
 
     @Override
     public void onError (Context context, String errorId) {
-    	GcmjsModule module = (GcmjsModule)TiApplication.getInstance().getModuleByName(GcmjsModule.MODULE_NAME);
+    	GcmjsModule module = GcmjsModule.getInstance();
     	if (module != null) {
     		GcmjsModule.logd("onError: got the module!");
     		module.fireError(errorId);
@@ -100,7 +100,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
     @Override
     protected boolean onRecoverableError (Context context, String errorId) {
-    	GcmjsModule module = (GcmjsModule)TiApplication.getInstance().getModuleByName(GcmjsModule.MODULE_NAME);
+    	GcmjsModule module = GcmjsModule.getInstance();
     	if (module != null) {
     		GcmjsModule.logd("onRecoverableError: got the module!");
     		module.fireError(errorId);

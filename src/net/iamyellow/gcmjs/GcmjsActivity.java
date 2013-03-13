@@ -16,10 +16,21 @@
 
 package net.iamyellow.gcmjs;
 
-import ti.modules.titanium.android.TiJSService;
+import org.appcelerator.titanium.TiApplication;
+import ti.modules.titanium.android.TiJSActivity;
 
-public final class GcmService extends TiJSService {
-	public GcmService() {
-		super("gcm.js");
+public class GcmjsActivity extends TiJSActivity  {
+	
+	public GcmjsActivity () {
+		super("gcm_activity.js");
+
+		if (TiApplication.getAppCurrentActivity() == null) {
+		    GcmjsModule.logd("Starting gcm_activity.js, app is NOT running.");
+		    AppStateListener.appWasNotRunning = true;
+		}
+		else {
+			GcmjsModule.logd("Starting gcm_activity.js, app IS running.");
+		    AppStateListener.appWasNotRunning = false;
+		}
 	}
 }

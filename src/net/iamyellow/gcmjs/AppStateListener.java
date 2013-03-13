@@ -16,27 +16,21 @@
 
 package net.iamyellow.gcmjs;
 
-import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.titanium.TiApplication.ActivityTransitionListener;
 
 public class AppStateListener implements ActivityTransitionListener  {
-	public boolean oneActivityIsResumed = true;
+	public static boolean oneActivityIsResumed = false;
+	public static boolean appWasNotRunning = false;
 
 	@Override
 	public void onActivityTransition (boolean state) {
 		oneActivityIsResumed = !state;
-		GcmjsModule.logd(">>>>>>>>>>>>> App is in " + (oneActivityIsResumed ? "FG" : "BG"));
-	}
-
-	public boolean isInFg () {
-		if (!KrollRuntime.isInitialized()) {
-			return false;
-		}
-
+		
 		if (oneActivityIsResumed) {
-			return true;
+	    	GcmjsModule module = GcmjsModule.getInstance();
+	    	if (module != null) {
+	    		module.executeActionsWhileIfForeground();
+	    	}
 		}
-
-		return false;
 	}
 }

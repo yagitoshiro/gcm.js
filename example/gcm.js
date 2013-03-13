@@ -1,13 +1,13 @@
-/*global Ti: true */
+/*global Ti: true, require: true */
 
 (function (service) {
+
 	var serviceIntent = service.getIntent(),
 	title = serviceIntent.hasExtra('title') ? serviceIntent.getStringExtra('title') : '',
-	statusBarMessage = serviceIntent.hasExtra('title') ? serviceIntent.getStringExtra('title') : '',
+	statusBarMessage = serviceIntent.hasExtra('message') ? serviceIntent.getStringExtra('message') : '',
 	message = serviceIntent.hasExtra('message') ? serviceIntent.getStringExtra('message') : '',
-	isAppStarted = Ti.Android.currentActivity && Ti.Android.currentActivity !== null,
 	notificationId = (function () {
-		// android notifications ids ara int32
+		// android notifications ids are int32
 		// java int32 max value is 2.147.483.647, so we cannot use javascript millis timpestamp
 		// let's make a valid timed based id:
 
@@ -37,29 +37,36 @@
 
 		return str | 0;
 	})();
-
-	var intent = Ti.Android.createIntent({
-		// NOTICE
-		// replace '.NameOfYourAppActivity' with your app name!
-		// check build/android/AndroidManifest.xml and search for android:name in the applcation tag, sure there it is!
-		className: isAppStarted ? 'org.appcelerator.titanium.TiActivity' : Ti.App.id + '.NameOfYourAppActivity',
+		
+	// create launcher intent
+	var ntfId = Ti.App.Properties.getInt('ntfId', 0),
+	launcherIntent = Ti.Android.createIntent({
+		className: 'net.iamyellow.gcmjs.GcmjsActivity',
+		action: 'action' + ntfId, // we need an action identifier to be able to track click on notifications
 		packageName: Ti.App.id,
 		flags: Ti.Android.FLAG_ACTIVITY_NEW_TASK | Ti.Android.FLAG_ACTIVITY_SINGLE_TOP
 	});
-	intent.addCategory(Ti.Android.CATEGORY_LAUNCHER);
+	launcherIntent.addCategory(Ti.Android.CATEGORY_LAUNCHER);
+	launcherIntent.putExtra("ntfId", ntfId);
 
+	// increase notification id
+	ntfId += 1;
+	Ti.App.Properties.setInt('ntfId', ntfId);
+
+	// create notification
 	var pintent = Ti.Android.createPendingIntent({
-		intent: intent
+		intent: launcherIntent
 	}),
 	notification = Ti.Android.createNotification({
 		contentIntent: pintent,
 		contentTitle: title,
 		contentText: message,
 		tickerText: statusBarMessage,
-		defaults: Ti.Android.DEFAULT_LIGHTS | Ti.Android.DEFAULT_VIBRATE,
+		icon: Ti.App.Android.R.drawable.appicon,
 		flags: Ti.Android.FLAG_AUTO_CANCEL | Ti.Android.FLAG_SHOW_LIGHTS
 	});
 	Ti.Android.NotificationManager.notify(notificationId, notification);
 
 	service.stop();
-})(Ti.Android.currentService);
+
+})(require('net.iamyellow.gcmjs').currentService);
