@@ -17,42 +17,9 @@
 package net.iamyellow.gcmjs;
 
 import ti.modules.titanium.android.TiJSService;
-import org.appcelerator.titanium.TiC;
-
-import android.app.Service;
-import android.content.Intent;
 
 public final class GcmjsService extends TiJSService {
 	public GcmjsService() {
 		super("gcm.js");
-	}
-
-	private void finalizeUrl(Intent intent) {
-		if (url == null) {
-			if (intent != null && intent.getDataString() != null) {
-				url = intent.getDataString();
-			} else {
-				throw new IllegalStateException("Service url required.");
-			}
-		}
-	}
-
-	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		finalizeUrl(intent);
-		GcmjsServiceProxy proxy = createProxy(intent);
-		GcmjsModule.getInstance().setCurrentService(proxy);
-
-		start(proxy);
-
-		return intent.getIntExtra(TiC.INTENT_PROPERTY_START_MODE,
-				Service.START_REDELIVER_INTENT);
-	}
-
-	@Override
-	protected GcmjsServiceProxy createProxy(Intent intent) {
-		GcmjsServiceProxy proxy = new GcmjsServiceProxy(this, intent,
-				proxyCounter.incrementAndGet());
-		return proxy;
 	}
 }

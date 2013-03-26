@@ -53,8 +53,7 @@ public class GcmjsModule extends KrollModule {
 	private static final String LCAT = "gcmjs";
 
 	public static void logd(String msg) {
-		// if (DBG) {
-		if (true) {
+		if (DBG) {
 			Log.d(LCAT, msg);
 		}
 	}
@@ -209,21 +208,6 @@ public class GcmjsModule extends KrollModule {
 				.getLaunchIntentForPackage(
 						TiApplication.getInstance().getPackageName())
 				.getComponent().getClassName();
-	}
-
-	// *************************************************************
-	// current service stuff
-
-	private static GcmjsServiceProxy currentService;
-
-	public void setCurrentService(GcmjsServiceProxy currentService) {
-		GcmjsModule.currentService = currentService;
-	}
-
-	@Kroll.getProperty
-	@Kroll.method
-	public GcmjsServiceProxy getCurrentService() {
-		return currentService;
 	}
 
 	// *************************************************************

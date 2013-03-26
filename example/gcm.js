@@ -69,4 +69,4 @@
 
 	service.stop();
 
-})(require('net.iamyellow.gcmjs').currentService);
+})(Ti.Android.currentService);
