@@ -17,7 +17,9 @@
 package net.iamyellow.gcmjs;
 
 import java.util.HashMap;
+import java.io.IOException;
 
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollFunction;
@@ -26,11 +28,14 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiApplication;
 
 import android.content.Context;
+import android.os.AsyncTask;
 
-import com.google.android.gcm.GCMRegistrar;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 @Kroll.module(name = "Gcmjs", id = "net.iamyellow.gcmjs")
 public class GcmjsModule extends KrollModule {
+
+	private GoogleCloudMessaging gcm;
 
 	// *************************************************************
 	// constants
@@ -161,39 +166,29 @@ public class GcmjsModule extends KrollModule {
 		// if we're executing this, we **SHOULD BE** in fg
 		AppStateListener.oneActivityIsResumed = true;
 
-		// do the registration
-		Context context = TiApplication.getInstance().getApplicationContext();
-		GCMRegistrar.checkDevice(context);
-		GCMRegistrar.checkManifest(context);
-		String registrationId = GCMRegistrar.getRegistrationId(context);
-		if (registrationId.equals("")) {
-			logd("Registering for GCM notifications.");
-
-			GCMRegistrar.register(
-					context,
-					TiApplication.getInstance().getAppProperties()
-							.getString(GcmjsModule.PROPERTY_SENDER_ID, ""));
-		} else {
-			logd("Previously registered for GCM notifications, firing success event.");
-
-			fireSuccess(registrationId);
-		}
-	}
-
-	// *************************************************************
-	// unregister
-
-	@Kroll.method
-	public void unregisterForPushNotifications() {
-		Context context = TiApplication.getInstance().getApplicationContext();
-		GCMRegistrar.checkDevice(context);
-		GCMRegistrar.checkManifest(context);
-		String registrationId = GCMRegistrar.getRegistrationId(context);
-		if (registrationId.equals("")) {
-			logw("Trying to unregister but user was not registered.");
-		} else {
-			GCMRegistrar.unregister(context);
-		}
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+            	String msg = "";
+                try {
+                    if (gcm == null) {
+                    	Context context = TiApplication.getInstance().getApplicationContext();
+                        gcm = GoogleCloudMessaging.getInstance(context);
+                    }
+                    String registrationId = gcm.register(TiApplication.getInstance().getAppProperties().getString(GcmjsModule.PROPERTY_SENDER_ID, ""));
+                    msg = "Device registered: registrationId = " + registrationId;
+                    fireSuccess(registrationId);
+                } catch (IOException e) {
+                	msg = "Error: " + e.getMessage();
+                	fireError(msg);
+                }
+                return msg;
+            }
+ 
+            @Override
+            protected void onPostExecute(String msg) {
+            }
+        }.execute(null, null, null);
 	}
 
 	// *************************************************************
@@ -269,6 +264,9 @@ public class GcmjsModule extends KrollModule {
 
 			logd("Success event should have been fired.");
 		}
+		KrollDict event = new KrollDict();
+		event.put("deviceToken", registrationId);
+		fireEvent("success", event);     
 	}
 
 	public void fireError(String error) {
@@ -280,6 +278,9 @@ public class GcmjsModule extends KrollModule {
 
 			logd("Error event should have been fired.");
 		}
+		KrollDict event = new KrollDict();
+		event.put("error", error);
+		fireEvent("error", event);
 	}
 
 	public void fireUnregister(String registrationId) {
@@ -290,6 +291,9 @@ public class GcmjsModule extends KrollModule {
 			result.put(EVENT_PROPERTY_DEVICE_TOKEN, registrationId);
 			onUnregisterCallback.call(getKrollObject(), result);
 		}
+		KrollDict event = new KrollDict();
+		event.put("deviceToken", registrationId);
+		fireEvent("unregister", event);
 	}
 
 	public void fireMessage(HashMap<String, Object> messageData) {
@@ -299,14 +303,23 @@ public class GcmjsModule extends KrollModule {
 
 			logd("Callback event should have been fired.");
 		}
+		Integer inBackground = (Integer)messageData.get("inBackground");
+		String message      = (String)messageData.get("message");
+		KrollDict event = new KrollDict();
+		event.put("inBackground", inBackground);
+		event.put("message", message);
+		fireEvent("callback", event);
 	}
 
 	public void fireData() {
 		logd("Start firing data.");
 		if (onDataCallback != null) {
 			onDataCallback.call(getKrollObject(), data);
-
 			logd("Data event should have been fired.");
 		}
+
+		KrollDict event = new KrollDict();
+		event.put("data", data);
+		fireEvent("data", event);
 	}
 }

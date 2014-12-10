@@ -17,101 +17,132 @@
 package net.iamyellow.gcmjs;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.util.TiRHelper;
+import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
 
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+import android.support.v4.app.NotificationCompat;
+
+import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 
-import com.google.android.gcm.GCMBaseIntentService;
 
-public class GCMIntentService extends GCMBaseIntentService {
+public class GCMIntentService extends IntentService 
+{
+	private static final String TAG = "GCMIntentService";
 
-    public GCMIntentService () {
-		super(TiApplication.getInstance().getAppProperties().getString(GcmjsModule.PROPERTY_SENDER_ID, ""));
-    }
-        
-    @Override
-    protected void onRegistered (Context context, String registrationId) {
-    	GcmjsModule module = GcmjsModule.getInstance();
-    	if (module != null) {
-    		GcmjsModule.logd("onRegistered: got the module!");
-    		module.fireSuccess(registrationId);
-    	}
-    	else {
-    		GcmjsModule.logd("onRegistered: module instance not found.");
-    	}
+    public static final int NOTIFICATION_ID = 1;
+    private NotificationManager mNotificationManager;
+    NotificationCompat.Builder builder;
+
+    public GCMIntentService() 
+	{
+		super(GCMIntentService.class.getSimpleName());
     }
     
     @Override
-    protected void onUnregistered (Context context, String registrationId) {
+    protected void onHandleIntent(Intent intent) 
+	{
+        Bundle extras = intent.getExtras();
+        GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
+        String messageType = gcm.getMessageType(intent);
+ 
+        if (!extras.isEmpty()) 
+		{
+			if (messageType == null) 
+			{
+            	GcmjsModule.logd(TAG+": messageType is null");
+			}
+			else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) 
+			{
+            	
+            	GcmjsModule.logd(TAG+": deleted");
+            	
+            }
+			else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) 
+			{
+				String title = extras.getString("title");
+				if ("".equals(title) || title == null) {
+					title = "タイトル";
+				}
+            	String message = extras.getString("message");
+				if ("".equals(message) || message == null) {
+					message = "メッセージ";
+				}
+
+            	String options = extras.getString("options");
+            	
+            	int appIconId = 0;
+				try 
+				{
+					appIconId = TiRHelper.getApplicationResource("drawable.appicon");
+				}
+				catch (ResourceNotFoundException e) 
+				{
+					GcmjsModule.logd(TAG+": ResourceNotFoundException: "+e.getMessage());
+				}
+            	
+				GcmjsModule.logd(TAG+": extras.toString():"+ extras.toString());
+				// フォアグラウンドの場合だけPush通知
+				if (!isInForeground()) {
+					TiApplication tiapp = TiApplication.getInstance();
+					Intent launcherIntent = new Intent(tiapp, GcmjsService.class);
+					launcherIntent.putExtra("title", "タイトル");
+					launcherIntent.putExtra("message", message);
+					/*
+					for (String key : intent.getExtras().keySet()) {
+						String eventKey = key.startsWith("data.") ? key.substring(5) : key;
+						intent.putExtra(eventKey, intent.getExtras().getString(key));
+					}
+					*/
+					tiapp.startService(launcherIntent);
+				
+	            }
+				else 
+				{
+		        	HashMap<String, Object> messageData = new HashMap<String, Object>();
+		        	messageData.put("inBackground", 0);
+		        	messageData.put("message", extras.toString());
+			    	fireMessage(messageData);
+	            }
+            	
+            }
+        }
+        GCMBroadcastReceiver.completeWakefulIntent(intent);
+    }
+    
+    public static void fireMessage(HashMap<String, Object> messageData) 
+	{
     	GcmjsModule module = GcmjsModule.getInstance();
-    	if (module != null) {
-    		GcmjsModule.logd("onUnregistered: got the module!");
-    		module.fireUnregister(registrationId);
+    	if (module != null) 
+		{
+	    	module.fireMessage(messageData);
     	}
-    	else {
-    		GcmjsModule.logd("onUnregistered: module instance not found.");
+		else 
+		{
+    		GcmjsModule.logd(TAG+": fireMessage module instance not found.");
     	}
     }
 
-    @Override
-    protected void onMessage (Context context, Intent messageIntent) {
-    	TiApplication tiapp = TiApplication.getInstance();
-    	
-    	GcmjsModule module = GcmjsModule.getInstance();
-    	if (module != null) {
-    		GcmjsModule.logd("onMessage: got the module!");
-    		if (module.isInFg()) {
-    			GcmjsModule.logd("onMessage: app is in foreground, no need for notifications.");
-
-    			HashMap<String, Object> messageData = new HashMap<String, Object>();
-    	    	for (String key : messageIntent.getExtras().keySet()) {
-    	    		String eventKey = key.startsWith("data.") ? key.substring(5) : key;
-    				messageData.put(eventKey, messageIntent.getExtras().getString(key));
-    			}
-    			module.fireMessage(messageData);
-    			return;
-    		}
-    	}
-    	else {
-    		GcmjsModule.logd("onMessage: module instance not found.");
-    	}
-    	
-		Intent intent = new Intent(tiapp, GcmjsService.class);
-        for (String key : messageIntent.getExtras().keySet()) {
-			String eventKey = key.startsWith("data.") ? key.substring(5) : key;
-			intent.putExtra(eventKey, messageIntent.getExtras().getString(key));
+    public static boolean isInForeground() 
+	{
+		Context context = TiApplication.getInstance().getApplicationContext();
+		ActivityManager am = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+        String packageName = context.getPackageName();
+		if (am.getRunningTasks(1).get(0).topActivity.getPackageName().equals(packageName)) {
+			return true;
 		}
-        tiapp.startService(intent);
-    }
-
-    @Override
-    public void onError (Context context, String errorId) {
-    	GcmjsModule module = GcmjsModule.getInstance();
-    	if (module != null) {
-    		GcmjsModule.logd("onError: got the module!");
-    		module.fireError(errorId);
-    	}
-    	else {
-    		GcmjsModule.logd("onError: module instance not found.");
-    	}
-    }
-
-    @Override
-    protected boolean onRecoverableError (Context context, String errorId) {
-    	GcmjsModule module = GcmjsModule.getInstance();
-    	if (module != null) {
-    		GcmjsModule.logd("onRecoverableError: got the module!");
-    		module.fireError(errorId);
-    	}
-    	else {
-    		GcmjsModule.logd("onRecoverableError: module instance not found.");
-    	}
-        return super.onRecoverableError(context, errorId);
-    }
-
-    @Override
-    protected void onDeletedMessages (Context context, int total) {
-    }
+	    return false;
+	}
+	
 }
