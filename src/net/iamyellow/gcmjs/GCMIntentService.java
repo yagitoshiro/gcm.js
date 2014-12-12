@@ -71,17 +71,6 @@ public class GCMIntentService extends IntentService
             }
 			else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) 
 			{
-				String title = extras.getString("title");
-				if ("".equals(title) || title == null) {
-					title = "タイトル";
-				}
-            	String message = extras.getString("message");
-				if ("".equals(message) || message == null) {
-					message = "メッセージ";
-				}
-
-            	String options = extras.getString("options");
-            	
             	int appIconId = 0;
 				try 
 				{
@@ -97,14 +86,13 @@ public class GCMIntentService extends IntentService
 				if (!isInForeground()) {
 					TiApplication tiapp = TiApplication.getInstance();
 					Intent launcherIntent = new Intent(tiapp, GcmjsService.class);
-					launcherIntent.putExtra("title", "タイトル");
-					launcherIntent.putExtra("message", message);
-					/*
-					for (String key : intent.getExtras().keySet()) {
+					for (String key : extras.keySet()) {
 						String eventKey = key.startsWith("data.") ? key.substring(5) : key;
-						intent.putExtra(eventKey, intent.getExtras().getString(key));
+						String data = extras.getString(key);
+						if (data != null && !"".equals(data)) {
+							launcherIntent.putExtra(eventKey, extras.getString(key));
+						}
 					}
-					*/
 					tiapp.startService(launcherIntent);
 				
 	            }
