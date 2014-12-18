@@ -4,4 +4,4 @@ bin
 build
 .apt_generated
 libs
-manifest
+#manifest
