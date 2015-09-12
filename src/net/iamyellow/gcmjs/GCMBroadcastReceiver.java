@@ -23,17 +23,15 @@ import android.content.Intent;
 
 import net.iamyellow.gcmjs.GCMIntentService;
 
-public class GCMBroadcastReceiver extends android.support.v4.content.WakefulBroadcastReceiver
-{
+public class GCMBroadcastReceiver extends
+		android.support.v4.content.WakefulBroadcastReceiver {
 
 	@Override
-	public void onReceive(Context context, Intent intent)
-	{
+	public void onReceive(Context context, Intent intent) {
 		ComponentName comp = new ComponentName(context.getPackageName(),
-			GCMIntentService.class.getName());
+				GCMIntentService.class.getName());
 
 		startWakefulService(context, (intent.setComponent(comp)));
-		setResultCode(Activity.RESULT_OK);
 	}
 
 }

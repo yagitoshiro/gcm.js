@@ -12,5 +12,10 @@
 	<classpathentry kind="lib" path="lib/gcm.jar"/>
 	<classpathentry kind="lib" path="/Users/yellow/Library/Application Support/Titanium/mobilesdk/osx/3.0.2.GA/android/modules/titanium-android.jar"/>
 	<classpathentry kind="lib" path="/Users/yellow/Library/Application Support/Titanium/mobilesdk/osx/3.0.2.GA/android/android-support-v4.jar"/>
+	<classpathentry kind="src" path=".apt_generated">
+		<attributes>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

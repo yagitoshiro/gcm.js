@@ -166,29 +166,33 @@ public class GcmjsModule extends KrollModule {
 		// if we're executing this, we **SHOULD BE** in fg
 		AppStateListener.oneActivityIsResumed = true;
 
-        new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... params) {
-            	String msg = "";
-                try {
-                    if (gcm == null) {
-                    	Context context = TiApplication.getInstance().getApplicationContext();
-                        gcm = GoogleCloudMessaging.getInstance(context);
-                    }
-                    String registrationId = gcm.register(TiApplication.getInstance().getAppProperties().getString(GcmjsModule.PROPERTY_SENDER_ID, ""));
-                    msg = "Device registered: registrationId = " + registrationId;
-                    fireSuccess(registrationId);
-                } catch (IOException e) {
-                	msg = "Error: " + e.getMessage();
-                	fireError(msg);
-                }
-                return msg;
-            }
- 
-            @Override
-            protected void onPostExecute(String msg) {
-            }
-        }.execute(null, null, null);
+		new AsyncTask<Void, Void, String>() {
+			@Override
+			protected String doInBackground(Void... params) {
+				String msg = "";
+				try {
+					if (gcm == null) {
+						Context context = TiApplication.getInstance()
+								.getApplicationContext();
+						gcm = GoogleCloudMessaging.getInstance(context);
+					}
+					String registrationId = gcm.register(TiApplication
+							.getInstance().getAppProperties()
+							.getString(GcmjsModule.PROPERTY_SENDER_ID, ""));
+					msg = "Device registered: registrationId = "
+							+ registrationId;
+					fireSuccess(registrationId);
+				} catch (IOException e) {
+					msg = "Error: " + e.getMessage();
+					fireError(msg);
+				}
+				return msg;
+			}
+
+			@Override
+			protected void onPostExecute(String msg) {
+			}
+		}.execute(null, null, null);
 	}
 
 	// *************************************************************
@@ -266,7 +270,7 @@ public class GcmjsModule extends KrollModule {
 		}
 		KrollDict event = new KrollDict();
 		event.put("deviceToken", registrationId);
-		fireEvent("success", event);     
+		fireEvent("success", event);
 	}
 
 	public void fireError(String error) {
@@ -303,8 +307,8 @@ public class GcmjsModule extends KrollModule {
 
 			logd("Callback event should have been fired.");
 		}
-		Integer inBackground = (Integer)messageData.get("inBackground");
-		String message      = (String)messageData.get("message");
+		Integer inBackground = (Integer) messageData.get("inBackground");
+		String message = (String) messageData.get("message");
 		KrollDict event = new KrollDict();
 		event.put("inBackground", inBackground);
 		event.put("message", message);

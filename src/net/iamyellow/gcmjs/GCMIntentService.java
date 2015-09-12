@@ -36,21 +36,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-
-public class GCMIntentService extends IntentService 
-{
+public class GCMIntentService extends IntentService {
 	private static final String TAG = "GCMIntentService";
 
-    public static final int NOTIFICATION_ID = 1;
-    private NotificationManager mNotificationManager;
-    NotificationCompat.Builder builder;
+	public static final int NOTIFICATION_ID = 1;
+	private NotificationManager mNotificationManager;
+	NotificationCompat.Builder builder;
 
-    public GCMIntentService() 
-	{
+	public GCMIntentService() {
 		super(GCMIntentService.class.getSimpleName());
-    }
-    
-    @Override
+	}
+
+	@Override
     protected void onHandleIntent(Intent intent) 
 	{
         Bundle extras = intent.getExtras();
@@ -89,6 +86,7 @@ public class GCMIntentService extends IntentService
 					for (String key : extras.keySet()) {
 						String eventKey = key.startsWith("data.") ? key.substring(5) : key;
 						String data = extras.getString(key);
+						GcmjsModule.logd(TAG + ": eventKey:" + eventKey + " data:" + data);
 						if (data != null && !"".equals(data)) {
 							launcherIntent.putExtra(eventKey, extras.getString(key));
 						}
@@ -108,29 +106,26 @@ public class GCMIntentService extends IntentService
         }
         GCMBroadcastReceiver.completeWakefulIntent(intent);
     }
-    
-    public static void fireMessage(HashMap<String, Object> messageData) 
-	{
-    	GcmjsModule module = GcmjsModule.getInstance();
-    	if (module != null) 
-		{
-	    	module.fireMessage(messageData);
-    	}
-		else 
-		{
-    		GcmjsModule.logd(TAG+": fireMessage module instance not found.");
-    	}
-    }
 
-    public static boolean isInForeground() 
-	{
+	public static void fireMessage(HashMap<String, Object> messageData) {
+		GcmjsModule module = GcmjsModule.getInstance();
+		if (module != null) {
+			module.fireMessage(messageData);
+		} else {
+			GcmjsModule.logd(TAG + ": fireMessage module instance not found.");
+		}
+	}
+
+	public static boolean isInForeground() {
 		Context context = TiApplication.getInstance().getApplicationContext();
-		ActivityManager am = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
-        String packageName = context.getPackageName();
-		if (am.getRunningTasks(1).get(0).topActivity.getPackageName().equals(packageName)) {
+		ActivityManager am = (ActivityManager) context
+				.getSystemService(Context.ACTIVITY_SERVICE);
+		String packageName = context.getPackageName();
+		if (am.getRunningTasks(1).get(0).topActivity.getPackageName().equals(
+				packageName)) {
 			return true;
 		}
-	    return false;
+		return false;
 	}
-	
+
 }
