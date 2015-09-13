@@ -35,6 +35,7 @@ import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import org.appcelerator.kroll.KrollDict;
 
 public class GCMIntentService extends IntentService {
 	private static final String TAG = "GCMIntentService";
@@ -48,37 +49,24 @@ public class GCMIntentService extends IntentService {
 	}
 
 	@Override
-    protected void onHandleIntent(Intent intent) 
-	{
-        Bundle extras = intent.getExtras();
-        GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
-        String messageType = gcm.getMessageType(intent);
- 
-        if (!extras.isEmpty()) 
-		{
-			if (messageType == null) 
-			{
-            	GcmjsModule.logd(TAG+": messageType is null");
-			}
-			else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) 
-			{
-            	
-            	GcmjsModule.logd(TAG+": deleted");
-            	
-            }
-			else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) 
-			{
-            	int appIconId = 0;
-				try 
-				{
+	protected void onHandleIntent(Intent intent) {
+		Bundle extras = intent.getExtras();
+		GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
+		String messageType = gcm.getMessageType(intent);
+
+		if (!extras.isEmpty()) {
+			if (messageType == null) {
+				GcmjsModule.logd(TAG + ": messageType is null");
+			} else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) {
+				GcmjsModule.logd(TAG + ": deleted");
+			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
+				int appIconId = 0;
+				try {
 					appIconId = TiRHelper.getApplicationResource("drawable.appicon");
+				} catch (ResourceNotFoundException e) {
+					GcmjsModule.logd(TAG + ": ResourceNotFoundException: " + e.getMessage());
 				}
-				catch (ResourceNotFoundException e) 
-				{
-					GcmjsModule.logd(TAG+": ResourceNotFoundException: "+e.getMessage());
-				}
-            	
-				GcmjsModule.logd(TAG+": extras.toString():"+ extras.toString());
+
 				// フォアグラウンドの場合だけPush通知
 				if (!isInForeground()) {
 					TiApplication tiapp = TiApplication.getInstance();
@@ -86,28 +74,32 @@ public class GCMIntentService extends IntentService {
 					for (String key : extras.keySet()) {
 						String eventKey = key.startsWith("data.") ? key.substring(5) : key;
 						String data = extras.getString(key);
-						GcmjsModule.logd(TAG + ": eventKey:" + eventKey + " data:" + data);
+						// GcmjsModule.logd(TAG + ": eventKey:" + eventKey + " data:" + data);
 						if (data != null && !"".equals(data)) {
 							launcherIntent.putExtra(eventKey, extras.getString(key));
 						}
 					}
 					tiapp.startService(launcherIntent);
-				
-	            }
-				else 
-				{
-		        	HashMap<String, Object> messageData = new HashMap<String, Object>();
-		        	messageData.put("inBackground", 0);
-		        	messageData.put("message", extras.toString());
-			    	fireMessage(messageData);
-	            }
-            	
-            }
-        }
-        GCMBroadcastReceiver.completeWakefulIntent(intent);
-    }
 
-	public static void fireMessage(HashMap<String, Object> messageData) {
+				} else {
+					KrollDict messageData = new KrollDict();
+					for (String key : extras.keySet()) {
+						String eventKey = key.startsWith("data.") ? key.substring(5) : key;
+						String data = extras.getString(key);
+						// GcmjsModule.logd(TAG + ": eventKey:" + eventKey + " data:" + data);
+						if (data != null && !"".equals(data)) {
+							messageData.put(eventKey, extras.getString(key));
+						}
+					}
+					fireMessage(messageData);
+				}
+
+			}
+		}
+		GCMBroadcastReceiver.completeWakefulIntent(intent);
+	}
+
+	public static void fireMessage(KrollDict messageData) {
 		GcmjsModule module = GcmjsModule.getInstance();
 		if (module != null) {
 			module.fireMessage(messageData);
@@ -118,11 +110,9 @@ public class GCMIntentService extends IntentService {
 
 	public static boolean isInForeground() {
 		Context context = TiApplication.getInstance().getApplicationContext();
-		ActivityManager am = (ActivityManager) context
-				.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		String packageName = context.getPackageName();
-		if (am.getRunningTasks(1).get(0).topActivity.getPackageName().equals(
-				packageName)) {
+		if (am.getRunningTasks(1).get(0).topActivity.getPackageName().equals(packageName)) {
 			return true;
 		}
 		return false;

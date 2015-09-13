@@ -1,18 +1,30 @@
 /*global require: true, console: true, process: true */
 
-(function (messageId, callback) {
-	var _GCM = require('gcm').GCM,
-	GCM = new _GCM('API_KEY'); // API KEY at Google APIs Console
+(function(messageId, callback) {
+	var _GCM = require('gcm').GCM;
+
+	var GCM = new _GCM('SET YOU API KEY HERE');
+
+	var registration_id = 'SET YOUR DEVICES REGISTRATIONID HERE';
 
 	var message = {
-		registration_id: 'USER_REGISTRATION_ID',
-		'data.title': 'shephard: what lies in the shadow of the statue?',
-		'data.message': '4 8 15 16 23 42',
+		collapse_key: messageId,
+		registration_id: registration_id,
+		'data.title': 'Push From demoserver.js',
 		'data.sound': 'blacksmoke.mp3',
-		collapse_key: messageId
+		'data.message': 'Message Description',
+		'data.appdata': JSON.stringify({
+			avatar: 'hoge.png',
+			badges: 1,
+			notification_id: 100,
+			tipo_id: 10,
+			from: 302421605303,
+			link: 'http://www.google.com/'
+		})
 	};
 
-	GCM.send(message, function (err, messageId) {
+	GCM.send(message, function(err, messageId) {
+		console.log('send messageId:' + messageId);
 		if (err) {
 			console.error('error!');
 		}

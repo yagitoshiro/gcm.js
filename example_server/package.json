@@ -1,0 +1,14 @@
+{
+  "name": "example_server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "demoserver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "gcm": "^1.0.1"
+  }
+}

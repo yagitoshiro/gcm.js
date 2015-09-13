@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cp dist/net.iamyellow.gcmjs-android-*.zip ~/dev/gcmtest/
+cp dist/net.iamyellow.gcmjs-android-*.zip ./example/
 
 

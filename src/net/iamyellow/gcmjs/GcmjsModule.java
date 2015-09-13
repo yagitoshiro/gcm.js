@@ -219,8 +219,6 @@ public class GcmjsModule extends KrollModule {
 	@Kroll.getProperty
 	@Kroll.method
 	public HashMap getData() {
-		logd("Getting data.");
-
 		return data;
 	}
 
@@ -228,8 +226,6 @@ public class GcmjsModule extends KrollModule {
 	@Kroll.setProperty
 	@Kroll.method
 	public void setData(HashMap pData) {
-		logd("Setting data.");
-
 		data = pData;
 
 		if (AppStateListener.appWasNotRunning) {
@@ -246,7 +242,6 @@ public class GcmjsModule extends KrollModule {
 	}
 
 	public void executeActionsWhileIfForeground() {
-		logd("Checking for foreground pending actions.");
 		if (pendingData) {
 			logd("Found pending data.");
 			pendingData = false;
@@ -260,13 +255,10 @@ public class GcmjsModule extends KrollModule {
 	// events
 
 	public void fireSuccess(String registrationId) {
-		logd("Start firing success.");
 		if (onSuccessCallback != null) {
 			HashMap<String, String> result = new HashMap<String, String>();
 			result.put(EVENT_PROPERTY_DEVICE_TOKEN, registrationId);
 			onSuccessCallback.call(getKrollObject(), result);
-
-			logd("Success event should have been fired.");
 		}
 		KrollDict event = new KrollDict();
 		event.put("deviceToken", registrationId);
@@ -274,23 +266,19 @@ public class GcmjsModule extends KrollModule {
 	}
 
 	public void fireError(String error) {
-		logd("Start firing error.");
 		if (onErrorCallback != null) {
 			HashMap<String, String> result = new HashMap<String, String>();
 			result.put(EVENT_PROPERTY_ERROR, error);
 			onErrorCallback.call(getKrollObject(), result);
-
-			logd("Error event should have been fired.");
 		}
 		KrollDict event = new KrollDict();
 		event.put("error", error);
 		fireEvent("error", event);
 	}
 
+	@Kroll.method
 	public void fireUnregister(String registrationId) {
-		logd("Start firing unregister.");
 		if (onUnregisterCallback != null) {
-			logd("Should fire unregister.");
 			HashMap<String, String> result = new HashMap<String, String>();
 			result.put(EVENT_PROPERTY_DEVICE_TOKEN, registrationId);
 			onUnregisterCallback.call(getKrollObject(), result);
@@ -300,28 +288,17 @@ public class GcmjsModule extends KrollModule {
 		fireEvent("unregister", event);
 	}
 
-	public void fireMessage(HashMap<String, Object> messageData) {
-		logd("Start firing callback.");
+	public void fireMessage(KrollDict event) {
 		if (onMessageCallback != null) {
-			onMessageCallback.call(getKrollObject(), messageData);
-
-			logd("Callback event should have been fired.");
+			onMessageCallback.call(getKrollObject(), event);
 		}
-		Integer inBackground = (Integer) messageData.get("inBackground");
-		String message = (String) messageData.get("message");
-		KrollDict event = new KrollDict();
-		event.put("inBackground", inBackground);
-		event.put("message", message);
 		fireEvent("callback", event);
 	}
 
 	public void fireData() {
-		logd("Start firing data.");
 		if (onDataCallback != null) {
 			onDataCallback.call(getKrollObject(), data);
-			logd("Data event should have been fired.");
 		}
-
 		KrollDict event = new KrollDict();
 		event.put("data", data);
 		fireEvent("data", event);
