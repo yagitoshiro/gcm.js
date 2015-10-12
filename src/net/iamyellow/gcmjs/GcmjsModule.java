@@ -172,15 +172,12 @@ public class GcmjsModule extends KrollModule {
 				String msg = "";
 				try {
 					if (gcm == null) {
-						Context context = TiApplication.getInstance()
-								.getApplicationContext();
+						Context context = TiApplication.getInstance().getApplicationContext();
 						gcm = GoogleCloudMessaging.getInstance(context);
 					}
-					String registrationId = gcm.register(TiApplication
-							.getInstance().getAppProperties()
+					String registrationId = gcm.register(TiApplication.getInstance().getAppProperties()
 							.getString(GcmjsModule.PROPERTY_SENDER_ID, ""));
-					msg = "Device registered: registrationId = "
-							+ registrationId;
+					msg = "Device registered: registrationId = " + registrationId;
 					fireSuccess(registrationId);
 				} catch (IOException e) {
 					msg = "Error: " + e.getMessage();
@@ -201,12 +198,8 @@ public class GcmjsModule extends KrollModule {
 	@Kroll.getProperty
 	@Kroll.method
 	public String getMainActivityClassName() {
-		return TiApplication
-				.getInstance()
-				.getPackageManager()
-				.getLaunchIntentForPackage(
-						TiApplication.getInstance().getPackageName())
-				.getComponent().getClassName();
+		return TiApplication.getInstance().getPackageManager()
+				.getLaunchIntentForPackage(TiApplication.getInstance().getPackageName()).getComponent().getClassName();
 	}
 
 	// *************************************************************

@@ -74,7 +74,8 @@ public class GCMIntentService extends IntentService {
 					for (String key : extras.keySet()) {
 						String eventKey = key.startsWith("data.") ? key.substring(5) : key;
 						String data = extras.getString(key);
-						// GcmjsModule.logd(TAG + ": eventKey:" + eventKey + " data:" + data);
+						// GcmjsModule.logd(TAG + ": eventKey:" + eventKey + "
+						// data:" + data);
 						if (data != null && !"".equals(data)) {
 							launcherIntent.putExtra(eventKey, extras.getString(key));
 						}
@@ -86,7 +87,8 @@ public class GCMIntentService extends IntentService {
 					for (String key : extras.keySet()) {
 						String eventKey = key.startsWith("data.") ? key.substring(5) : key;
 						String data = extras.getString(key);
-						// GcmjsModule.logd(TAG + ": eventKey:" + eventKey + " data:" + data);
+						// GcmjsModule.logd(TAG + ": eventKey:" + eventKey + "
+						// data:" + data);
 						if (data != null && !"".equals(data)) {
 							messageData.put(eventKey, extras.getString(key));
 						}
