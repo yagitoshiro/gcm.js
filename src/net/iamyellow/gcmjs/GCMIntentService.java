@@ -73,7 +73,10 @@ public class GCMIntentService extends IntentService {
 					Intent launcherIntent = new Intent(tiapp, GcmjsService.class);
 					for (String key : extras.keySet()) {
 						String eventKey = key.startsWith("data.") ? key.substring(5) : key;
-						String data = extras.getString(key);
+						//String data = extras.getString(key);
+						// Always treat extra data as a String
+						Object o = extras.get(key);
+						String data = o.toString();
 						// GcmjsModule.logd(TAG + ": eventKey:" + eventKey + "
 						// data:" + data);
 						if (data != null && !"".equals(data)) {
@@ -86,7 +89,10 @@ public class GCMIntentService extends IntentService {
 					KrollDict messageData = new KrollDict();
 					for (String key : extras.keySet()) {
 						String eventKey = key.startsWith("data.") ? key.substring(5) : key;
-						String data = extras.getString(key);
+						//String data = extras.getString(key);
+						// Always treat extra data as a String
+						Object o = extras.get(key);
+						String data = o.toString();
 						// GcmjsModule.logd(TAG + ": eventKey:" + eventKey + "
 						// data:" + data);
 						if (data != null && !"".equals(data)) {
