@@ -77,7 +77,7 @@ public class GCMIntentService extends IntentService {
 						// GcmjsModule.logd(TAG + ": eventKey:" + eventKey + "
 						// data:" + data);
 						if (data != null && !"".equals(data)) {
-							launcherIntent.putExtra(eventKey, extras.getString(key));
+							launcherIntent.putExtra(eventKey, data);
 						}
 					}
 					tiapp.startService(launcherIntent);
@@ -90,7 +90,7 @@ public class GCMIntentService extends IntentService {
 						// GcmjsModule.logd(TAG + ": eventKey:" + eventKey + "
 						// data:" + data);
 						if (data != null && !"".equals(data)) {
-							messageData.put(eventKey, extras.getString(key));
+							messageData.put(eventKey, data);
 						}
 					}
 					fireMessage(messageData);
